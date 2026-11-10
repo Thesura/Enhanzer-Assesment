@@ -1,7 +1,9 @@
-import { Component, signal } from '@angular/core';
+import { Component, signal, inject } from '@angular/core';
 import { FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
+import { Router } from '@angular/router';
 import { ValidatorUtil } from '../../utils/validator.util';
 import { FetchRequest } from '../../../util/fetchRequest.util';
+import { AuthService } from '../../services/auth.service';
 
 @Component({
   imports: [ReactiveFormsModule],
@@ -13,7 +15,8 @@ export class LoginPage {
   protected readonly submitted = signal(false);
   protected readonly statusMessage = signal('');
   protected readonly url = 'https://ez-staging-api.azurewebsites.net/api/External_Api/POS_Api/Invoke';
-
+  protected authService = inject(AuthService);
+  protected router = inject(Router);
   protected readonly loginForm = new FormGroup({
     email: new FormControl('', {
       nonNullable: true,
@@ -24,6 +27,12 @@ export class LoginPage {
       validators: [ValidatorUtil.required()],
     }),
   });
+
+  ngOnInit() {
+    if(this.authService.isLoggedIn()) {
+      this.router.navigate(['/purchase-bill']);
+    }
+  }
 
   protected async submit(): Promise<any> {
     this.submitted.set(true);
@@ -36,6 +45,8 @@ export class LoginPage {
       this.loginForm.markAllAsTouched();
       return;
     }
+
+    
 
     const payload = {
         API_Action: "GetLoginData",
@@ -58,11 +69,18 @@ export class LoginPage {
 
     try {
       const response = await fetchRequest.execute<any>();
+      let body: any;
+      let locations: any[];
       console.log('Login successful:', response);
-      if(response.status >= 400) {
+      console.log('Response status:', response.status);
+      console.log('Response data:', response.data.Response_Body[0].User_Display_Name);
+      if(response.status === 401) {
         this.statusMessage.set('Invalid credentials. Please check your email and password.');
       }else if(response.status === 200) {
-
+        body = response.data.Response_Body[0];
+        locations = body.User_Locations;
+        this.authService.saveSession(body.User_Display_Name);
+        this.router.navigate(['/purchase-bill']);
       }else{
         this.statusMessage.set('An unexpected error occurred. Please try again later.');
       }

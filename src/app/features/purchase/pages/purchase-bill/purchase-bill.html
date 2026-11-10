@@ -1,0 +1,231 @@
+<main class="page">
+  <header class="topbar">
+    <div class="topbar-title">
+      <div>
+        <p class="eyebrow">PURCHASING</p>
+        <h1>Purchase Bill</h1>
+      </div>
+    </div>
+    <div class="account-actions" aria-label="User account">
+      <span class="username">{{ username }}</span>
+      <button class="logout-button" type="button" (click)="logout()">Log out</button>
+    </div>
+  </header>
+
+  <div class="workspace">
+    <div class="bill-content">
+      <section class="entry-card" aria-labelledby="items-title">
+        <div class="section-heading">
+          <div>
+            <p class="eyebrow">BILL DETAILS</p>
+            <h2 id="items-title">Add an item</h2>
+          </div>
+          <p class="required-note"><span aria-hidden="true">*</span> Required</p>
+        </div>
+
+        <form [formGroup]="entryForm" (ngSubmit)="addLine()" novalidate>
+          <div class="entry-grid">
+            <div class="field item-field">
+              <label for="item">Item <span aria-hidden="true">*</span></label>
+              <select id="item" formControlName="item" (change)="onItemChange()"
+                [attr.aria-invalid]="entryForm.controls.item.invalid && entryForm.controls.item.touched"
+                [attr.aria-describedby]="entryForm.controls.item.invalid && entryForm.controls.item.touched ? 'item-error' : null">
+                <option value="" disabled>Select item</option>
+                @for (item of items; track item.id) {
+                  <option [value]="item.id">{{ item.name }}</option>
+                }
+              </select>
+              @if (entryForm.controls.item.invalid && entryForm.controls.item.touched) {
+                <span class="field-error" id="item-error">Choose an item.</span>
+              }
+            </div>
+
+            <div class="field batch-field">
+              <label for="batch">Batch <span aria-hidden="true">*</span></label>
+              <select id="batch" formControlName="batch"
+                [attr.aria-invalid]="entryForm.controls.batch.invalid && entryForm.controls.batch.touched"
+                [attr.aria-describedby]="entryForm.controls.batch.invalid && entryForm.controls.batch.touched ? 'batch-error' : null">
+                @if (entryForm.controls.item.value === '') {
+                  <option value="" disabled>Select an item first</option>
+                } @else if (availableBatches.length === 0) {
+                  <option value="" disabled>No batches available for this item</option>
+                } @else {
+                  <option value="" disabled>Select batch</option>
+                  @for (batch of availableBatches; track batch) {
+                    <option [value]="batch">{{ batch }}</option>
+                  }
+                }
+                
+              </select>
+              @if (entryForm.controls.batch.invalid && entryForm.controls.batch.touched) {
+                <span class="field-error" id="batch-error">Choose a batch.</span>
+              }
+            </div>
+
+            <div class="field">
+              <label for="standard-cost">Standard cost <span aria-hidden="true">*</span></label>
+              <input id="standard-cost" type="number" formControlName="standardCost"
+                min="0" step="0.01" inputmode="decimal" placeholder="0.00"
+                [attr.aria-invalid]="entryForm.controls.standardCost.invalid && entryForm.controls.standardCost.touched"
+                [attr.aria-describedby]="entryForm.controls.standardCost.invalid && entryForm.controls.standardCost.touched ? 'cost-error' : null" />
+              @if (entryForm.controls.standardCost.invalid && entryForm.controls.standardCost.touched) {
+                <span class="field-error" id="cost-error">Enter a cost of zero or more.</span>
+              }
+            </div>
+
+            <div class="field">
+              <label for="standard-price">Standard price <span aria-hidden="true">*</span></label>
+              <input id="standard-price" type="number" formControlName="standardPrice"
+                min="0" step="0.01" inputmode="decimal" placeholder="0.00"
+                [attr.aria-invalid]="entryForm.controls.standardPrice.invalid && entryForm.controls.standardPrice.touched"
+                [attr.aria-describedby]="entryForm.controls.standardPrice.invalid && entryForm.controls.standardPrice.touched ? 'price-error' : null" />
+              @if (entryForm.controls.standardPrice.invalid && entryForm.controls.standardPrice.touched) {
+                <span class="field-error" id="price-error">Enter a price of zero or more.</span>
+              }
+            </div>
+
+            <div class="field calculated-field">
+              <label for="margin">Margin</label>
+              <output id="margin" class="calculated-value" aria-live="polite">
+                {{ margin | currency:'USD':'symbol':'1.2-2' }}
+              </output>
+            </div>
+
+            <div class="field">
+              <label for="quantity">Quantity <span aria-hidden="true">*</span></label>
+              <input id="quantity" type="number" formControlName="quantity"
+                min="1" step="1" inputmode="numeric" placeholder="1"
+                [attr.aria-invalid]="entryForm.controls.quantity.invalid && entryForm.controls.quantity.touched"
+                [attr.aria-describedby]="entryForm.controls.quantity.invalid && entryForm.controls.quantity.touched ? 'quantity-error' : null" />
+              @if (entryForm.controls.quantity.invalid && entryForm.controls.quantity.touched) {
+                <span class="field-error" id="quantity-error">Enter a quantity of at least 1.</span>
+              }
+            </div>
+
+            <div class="field">
+              <label for="discount">Discount %</label>
+              <input id="discount" type="number" formControlName="discount"
+                min="0" step="0.01" inputmode="decimal" placeholder="0.00"
+                [attr.aria-invalid]="entryForm.controls.discount.invalid && entryForm.controls.discount.touched"
+                [attr.aria-describedby]="entryForm.controls.discount.invalid && entryForm.controls.discount.touched ? 'discount-error' : null" />
+              @if (entryForm.controls.discount.invalid && entryForm.controls.discount.touched) {
+                <span class="field-error" id="discount-error">Enter a discount of zero or more.</span>
+              }
+            </div>
+
+            <div class="field calculated-field">
+              <label for="total-cost">Total cost</label>
+              <output id="total-cost" class="calculated-value" aria-live="polite">
+                {{ totalCost | currency:'USD':'symbol':'1.2-2' }}
+              </output>
+            </div>
+
+            <div class="field calculated-field">
+              <label for="total-price">Total price</label>
+              <output id="total-price" class="calculated-value" aria-live="polite">
+                {{ totalPrice | currency:'USD':'symbol':'1.2-2' }}
+              </output>
+            </div>
+
+            <div class="add-field">
+              <button class="add-button" type="submit">
+                <span aria-hidden="true">+</span> Add item
+              </button>
+            </div>
+          </div>
+          <p class="form-status" role="status" aria-live="polite">{{ statusMessage() }}</p>
+        </form>
+      </section>
+
+      <section class="table-card" aria-labelledby="line-items-title">
+        <div class="section-heading table-heading">
+          <div>
+            <p class="eyebrow">CURRENT BILL</p>
+            <h2 id="line-items-title">Line items <span class="item-count">{{ lines().length }}</span></h2>
+          </div>
+        </div>
+        <div class="table-scroll">
+          <table>
+            <caption class="visually-hidden">Items added to this purchase bill</caption>
+            <thead>
+              <tr>
+                <th scope="col">Item</th>
+                <th scope="col">Batch</th>
+                <th scope="col">Standard cost</th>
+                <th scope="col">Standard price</th>
+                <th scope="col">Margin</th>
+                <th scope="col">Qty</th>
+                <th scope="col">Discount</th>
+                <th scope="col">Total cost</th>
+                <th scope="col">Total price</th>
+                <th scope="col"><span class="visually-hidden">Actions</span></th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (line of lines(); track line.id) {
+                <tr>
+                  <th scope="row">{{ line.item }}</th>
+                  <td>{{ line.batch }}</td>
+                  <td>{{ line.standardCost | currency:'USD':'symbol':'1.2-2' }}</td>
+                  <td>{{ line.standardPrice | currency:'USD':'symbol':'1.2-2' }}</td>
+                  <td>{{ line.margin | currency:'USD':'symbol':'1.2-2' }}</td>
+                  <td>{{ line.quantity }}</td>
+                  <td>{{ line.discount | currency:'USD':'symbol':'1.2-2' }}</td>
+                  <td>{{ line.totalCost | currency:'USD':'symbol':'1.2-2' }}</td>
+                  <td>{{ line.totalPrice | currency:'USD':'symbol':'1.2-2' }}</td>
+                  <td>
+                    <button class="remove-button" type="button" (click)="removeLine(line.id)"
+                      [attr.aria-label]="'Remove ' + line.item + ', batch ' + line.batch">
+                      Remove
+                    </button>
+                  </td>
+                </tr>
+              } @empty {
+                <tr>
+                  <td class="empty-state" colspan="10">No items added yet. Use the form above to add a line item.</td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      </section>
+    </div>
+
+    <aside class="summary-card" aria-labelledby="summary-title">
+      <div class="summary-title">
+        <span class="summary-icon" aria-hidden="true">✓</span>
+        <div>
+          <p class="eyebrow">OVERVIEW</p>
+          <h2 id="summary-title">Bill summary</h2>
+        </div>
+      </div>
+      <dl class="summary-list">
+        <div>
+          <dt>Line items</dt>
+          <dd>{{ lines().length }}</dd>
+        </div>
+        <div>
+          <dt>Total quantity</dt>
+          <dd>{{ totalQuantity }}</dd>
+        </div>
+        <div class="summary-divider">
+          <dt>Total cost</dt>
+          <dd>{{ totalLineCost | currency:'USD':'symbol':'1.2-2' }}</dd>
+        </div>
+        <div>
+          <dt>Gross total</dt>
+          <dd>{{ grossTotal | currency:'USD':'symbol':'1.2-2' }}</dd>
+        </div>
+        <div>
+          <dt>Total discount</dt>
+          <dd>−{{ totalDiscount | currency:'USD':'symbol':'1.2-2' }}</dd>
+        </div>
+      </dl>
+      <div class="net-total" aria-live="polite">
+        <span>Net total</span>
+        <strong>{{ netTotal | currency:'USD':'symbol':'1.2-2' }}</strong>
+      </div>
+      <p class="summary-note">Discounts are applied to the bill total.</p>
+    </aside>
+  </div>
+</main>

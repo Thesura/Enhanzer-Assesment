@@ -1,4 +1,4 @@
-import axios, { type AxiosRequestConfig, type Method } from 'axios';
+import axios, { AxiosResponse, type AxiosRequestConfig, type Method } from 'axios';
 
 export class FetchRequest {
   constructor(
@@ -7,7 +7,7 @@ export class FetchRequest {
     private readonly method: Method,
   ) {}
 
-  async execute<TResponse>(): Promise<TResponse> {
+  async execute<TResponse>(): Promise<AxiosResponse<TResponse>> {
     const config: AxiosRequestConfig = {
       url: this.url,
       method: this.method,
@@ -19,6 +19,6 @@ export class FetchRequest {
     }
 
     const response = await axios.request<TResponse>(config);
-    return response.data;
+    return response;
   }
 }
