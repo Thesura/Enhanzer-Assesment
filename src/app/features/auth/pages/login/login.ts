@@ -1,5 +1,7 @@
 import { Component, signal } from '@angular/core';
-import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import { FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
+import { ValidatorUtil } from '../../utils/validator.util';
+import { FetchRequest } from '../../../util/fetchRequest.util';
 
 @Component({
   imports: [ReactiveFormsModule],
@@ -10,28 +12,66 @@ import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angula
 export class LoginPage {
   protected readonly submitted = signal(false);
   protected readonly statusMessage = signal('');
+  protected readonly url = 'https://ez-staging-api.azurewebsites.net/api/External_Api/POS_Api/Invoke';
 
   protected readonly loginForm = new FormGroup({
     email: new FormControl('', {
       nonNullable: true,
-      validators: [Validators.required, Validators.email],
+      validators: [ValidatorUtil.required(), ValidatorUtil.email()],
     }),
     password: new FormControl('', {
       nonNullable: true,
-      validators: [Validators.required],
+      validators: [ValidatorUtil.required()],
     }),
   });
 
-  protected submit(): void {
+  protected async submit(): Promise<any> {
     this.submitted.set(true);
     this.statusMessage.set('');
+    this.loginForm.controls.email.setValue(
+      ValidatorUtil.sanitizeInput(this.loginForm.controls.email.value),
+    );
 
     if (this.loginForm.invalid) {
       this.loginForm.markAllAsTouched();
       return;
     }
 
-    this.statusMessage.set('Sign-in is not connected yet. Please contact your administrator.');
+    const payload = {
+        API_Action: "GetLoginData",
+        Device_Id: "D001",
+        Sync_Time: "",
+        Company_Code: this.loginForm.controls.email.value,
+        API_Body: {
+            Username: this.loginForm.controls.email.value,
+            Pw: this.loginForm.controls.password.value,
+        },
+      };
+
+    const fetchRequest = new FetchRequest(
+      this.url,
+      payload,
+      'POST'
+    );
+
+    console.log('Submitting login request with payload:', payload);
+
+    try {
+      const response = await fetchRequest.execute<any>();
+      console.log('Login successful:', response);
+      if(response.status >= 400) {
+        this.statusMessage.set('Invalid credentials. Please check your email and password.');
+      }else if(response.status === 200) {
+
+      }else{
+        this.statusMessage.set('An unexpected error occurred. Please try again later.');
+      }
+
+
+      // Handle successful login response
+    } catch (error) {
+      this.statusMessage.set('An error occurred while trying to sign in. Please try again.');
+    }
   }
 
   protected showError(field: 'email' | 'password'): boolean {

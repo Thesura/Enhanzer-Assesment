@@ -151,6 +151,45 @@ a:focus-visible {
   line-height: 1.5;
 }
 
+.demo-credentials {
+  margin-top: 20px;
+  padding: 14px 16px;
+  border: 1px solid #dce9e0;
+  border-radius: 8px;
+  background: #f5f9f6;
+}
+
+.demo-credentials h2 {
+  margin: 0 0 10px;
+  color: #173a2b;
+  font-size: 14px;
+}
+
+.demo-credentials dl {
+  display: grid;
+  gap: 7px;
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.4;
+}
+
+.demo-credentials dl div {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.demo-credentials dt {
+  color: #536159;
+  font-weight: 600;
+}
+
+.demo-credentials dd {
+  margin: 0;
+  color: #17231c;
+  overflow-wrap: anywhere;
+}
+
 .support {
   margin: 18px 0 0;
   color: #536159;
