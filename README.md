@@ -26,3 +26,7 @@ Then to run the app locally in development server, run:
 ```bash
 dotnet run
 ```
+
+# SQL Server Database
+
+Restore the database using the dbscript.sql file in SQL Server Management Studio. SQL Server and SQL Server Management Studio is required.
