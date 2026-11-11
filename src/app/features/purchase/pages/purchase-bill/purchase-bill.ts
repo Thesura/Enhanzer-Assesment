@@ -3,6 +3,8 @@ import { Component, inject, signal } from '@angular/core';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { AuthService } from '../../../auth/services/auth.service';
+import { FetchRequest } from '../../../util/fetchRequest.util';
+
 
 interface BillItem {
   id: string;
@@ -37,19 +39,46 @@ export class PurchaseBillPage {
   private readonly authService = inject(AuthService);
   private readonly router = inject(Router);
 
+  protected readonly batches: BatchOption[] = [];
+  protected readonly loading = signal(true);
+
+  async ngOnInit() {
+    const fetchRequest = new FetchRequest(
+      "http://localhost:5068/api/locations",
+      {},
+      'GET'
+    );
+    try {
+      const response = await fetchRequest.execute<any>();
+      if(response.status === 200) {
+        const locations = response.data;
+        console.log('Fetched locations:', locations);
+        this.batches.push(...locations.map((location: any) => ({
+          id: location.Location_ID,
+          name: location.Location_Name,
+        })));
+      } else {
+        this.statusMessage.set('Failed to fetch locations. Please try again later.');
+      }
+    } catch (error) {
+      this.statusMessage.set('An error occurred while fetching locations. Please try again.');
+      console.error('Error fetching locations:', error);
+    } finally {
+      this.loading.set(false);
+    }
+  }
+
   protected readonly username = this.authService.getUsername() ?? 'User';
   protected readonly items: BillItem[] = [
-    { id: 'item-1', name: 'Item 1'},
-    { id: 'item-2', name: 'Item 2'},
-    { id: 'item-3', name: 'Item 3'},
+    { id: 'item-1', name: 'Mango'},
+    { id: 'item-2', name: 'Apple'},
+    { id: 'item-3', name: 'Banana'},
+    { id: 'item-4', name: 'Orange'},
+    { id: 'item-5', name: 'Grape'},
+    { id: 'item-6', name: 'Kiwi'},
+    { id: 'item-7', name: 'Strawberry'},
   ];
-
-  protected readonly batches: BatchOption[] = [
-    { id: 'batch-1', name: 'Batch 1'},
-    { id: 'batch-2', name: 'Batch 2'},
-    { id: 'batch-3', name: 'Batch 3'},
-  ];
-
+  
   protected readonly lines = signal<BillLine[]>([]);
   protected readonly statusMessage = signal('');
   protected readonly entryForm = new FormGroup({
@@ -88,8 +117,7 @@ export class PurchaseBillPage {
 
   protected get totalPrice(): number {
     return (this.entryForm.controls.standardPrice.value ?? 0) *
-      (this.entryForm.controls.quantity.value ?? 0) -
-      (this.entryForm.controls.discount.value ?? 0);
+      (this.entryForm.controls.quantity.value ?? 0)
   }
 
   protected get totalLineCost(): number {
@@ -104,7 +132,7 @@ export class PurchaseBillPage {
   }
 
   protected get totalDiscount(): number {
-    return this.lines().reduce((total, line) => total + line.discount, 0);
+    return this.lines().reduce((total, line) => total + line.totalPrice * (line.discount/100), 0);
   }
 
   protected get netTotal(): number {
@@ -159,7 +187,7 @@ export class PurchaseBillPage {
         quantity: qty,
         discount: discountAmount,
         totalCost: cost * qty,
-        totalPrice: price * qty - discountAmount,
+        totalPrice: price * qty,
       },
     ]);
     this.entryForm.reset({

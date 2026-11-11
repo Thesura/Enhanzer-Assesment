@@ -1,4 +1,11 @@
-<main class="page">
+<main class="page" [attr.aria-busy]="loading()">
+  @if (loading()) {
+    <div class="loading-overlay" role="status" aria-live="polite">
+      <span class="loading-spinner" aria-hidden="true"></span>
+      <span>Signing in...</span>
+    </div>
+  }
+
   <section class="login-card" aria-labelledby="login-title">
     <div class="intro">
       <p class="eyebrow">WELCOME BACK</p>
@@ -46,7 +53,7 @@
         }
       </div>
 
-      <button type="submit">Sign in</button>
+      <button type="submit" [disabled]="loading()">Sign in</button>
       <p class="status-message" role="status" aria-live="polite">{{ statusMessage() }}</p>
     </form>
 

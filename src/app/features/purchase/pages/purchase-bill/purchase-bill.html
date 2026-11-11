@@ -1,4 +1,11 @@
-<main class="page">
+<main class="page" [attr.aria-busy]="loading()">
+  @if (loading()) {
+    <div class="loading-overlay" role="status" aria-live="polite">
+      <span class="loading-spinner" aria-hidden="true"></span>
+      <span>Loading bill data...</span>
+    </div>
+  }
+
   <header class="topbar">
     <div class="topbar-title">
       <div>
@@ -170,7 +177,7 @@
                   <td>{{ line.standardPrice | currency:'USD':'symbol':'1.2-2' }}</td>
                   <td>{{ line.margin | currency:'USD':'symbol':'1.2-2' }}</td>
                   <td>{{ line.quantity }}</td>
-                  <td>{{ line.discount | currency:'USD':'symbol':'1.2-2' }}</td>
+                  <td>{{ line.discount}}%</td>
                   <td>{{ line.totalCost | currency:'USD':'symbol':'1.2-2' }}</td>
                   <td>{{ line.totalPrice | currency:'USD':'symbol':'1.2-2' }}</td>
                   <td>
