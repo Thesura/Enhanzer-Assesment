@@ -111,8 +111,8 @@ export class PurchaseBillPage {
   }
 
   protected get totalCost(): number {
-    return (this.entryForm.controls.standardCost.value ?? 0) *
-      (this.entryForm.controls.quantity.value ?? 0);
+    let total = (this.entryForm.controls.standardCost.value ?? 0) * (this.entryForm.controls.quantity.value ?? 0);
+    return total - (total * (this.entryForm.controls.discount.value ?? 0) / 100);
   }
 
   protected get totalPrice(): number {
@@ -132,11 +132,11 @@ export class PurchaseBillPage {
   }
 
   protected get totalDiscount(): number {
-    return this.lines().reduce((total, line) => total + line.totalPrice * (line.discount/100), 0);
+    return this.lines().reduce((total, line) => total + line.totalCost - line.totalPrice, 0);
   }
 
   protected get netTotal(): number {
-    return this.grossTotal - this.totalDiscount;
+    return this.grossTotal - this.totalLineCost;
   }
 
   protected get totalQuantity(): number {
@@ -163,6 +163,7 @@ export class PurchaseBillPage {
     const price = standardPrice ?? 0;
     const qty = quantity ?? 0;
     const discountAmount = discount ?? 0;
+    const discountValue = cost * qty * (discountAmount / 100);
 
     if (discountAmount > price * qty) {
       this.statusMessage.set('Discount cannot exceed the line item selling total.');
@@ -186,7 +187,7 @@ export class PurchaseBillPage {
         margin: price - cost,
         quantity: qty,
         discount: discountAmount,
-        totalCost: cost * qty,
+        totalCost: cost * qty - discountValue,
         totalPrice: price * qty,
       },
     ]);

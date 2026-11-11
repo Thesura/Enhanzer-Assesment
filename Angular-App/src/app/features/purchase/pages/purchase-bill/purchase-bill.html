@@ -216,20 +216,20 @@
           <dd>{{ totalQuantity }}</dd>
         </div>
         <div class="summary-divider">
-          <dt>Total cost</dt>
+          <dt>Total Cost</dt>
           <dd>{{ totalLineCost | currency:'USD':'symbol':'1.2-2' }}</dd>
         </div>
         <div>
-          <dt>Gross total</dt>
+          <dt>Total Selling</dt>
           <dd>{{ grossTotal | currency:'USD':'symbol':'1.2-2' }}</dd>
         </div>
         <div>
-          <dt>Total discount</dt>
+          <dt>Total Cost discount</dt>
           <dd>−{{ totalDiscount | currency:'USD':'symbol':'1.2-2' }}</dd>
         </div>
       </dl>
       <div class="net-total" aria-live="polite">
-        <span>Net total</span>
+        <span>Net total margin</span>
         <strong>{{ netTotal | currency:'USD':'symbol':'1.2-2' }}</strong>
       </div>
       <p class="summary-note">Discounts are applied to the bill total.</p>

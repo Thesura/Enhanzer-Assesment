@@ -1,0 +1,23 @@
+@Enhanzer_API_HostAddress = http://localhost:5068
+
+GET {{Enhanzer_API_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
+
+### Retrieve locations
+GET {{Enhanzer_API_HostAddress}}/api/locations
+Accept: application/json
+
+###
+
+### Login (returns 501 until an authentication provider is configured)
+POST {{Enhanzer_API_HostAddress}}/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "user@example.com",
+  "password": "replace-with-a-real-password"
+}
+
+###
